@@ -43,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        musicRV = null;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
             TestPermission.getPermission(Manifest.permission.READ_EXTERNAL_STORAGE, this, TestPermission.OPEN_SYSTEM_DIALOG);
     }

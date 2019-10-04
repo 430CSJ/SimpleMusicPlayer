@@ -2,14 +2,11 @@ package com.zyh.example.simplemusicplayer;
 
 import android.content.ContentResolver;
 import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Handler;
-import android.os.Message;
 import android.provider.MediaStore;
 import android.util.Log;
 
@@ -78,33 +75,6 @@ public class MusicListLoader {
         return musicList;
     }
 
-    public static class GetAlbumBMPThread extends Thread {
-        public Bitmap mAlbumBMP;
-        public int mAlbumID, mReqW, mReqH;
-        public Handler handler;
-        @Override
-        public void run() {
-            try {
-                mAlbumBMP = getAlbumBMP(mAlbumID, mReqW, mReqH, appContext);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            if (handler != null) {
-                Message message = handler.obtainMessage();
-                message.obj = mAlbumBMP;
-                handler.sendMessage(message);
-            }
-        }
-    }
-
-    public static void executeThreadTask(Thread thread) {
-        try {
-            threadPool.execute(thread);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     public static Bitmap getAlbumBMP(int albumid, int reqw, int reqh, Context context) {
         String mUriAlbums = "content://media/external/audio/albums";
         Uri mAlbumUri = Uri.parse(mUriAlbums + "/" + albumid);
@@ -134,18 +104,23 @@ public class MusicListLoader {
         return bmp;
     }
 
-    public static class getAlbumBMPTask extends AsyncTask<Integer, Integer, Bitmap> {
+    public static class GetAlbumBMPTask extends AsyncTask<Integer, Integer, Bitmap> {
         Bitmap album_bmp;
         private MusicAdapter.ViewHolder holder;
 
-        public getAlbumBMPTask(MusicAdapter.ViewHolder holder) {
+        public GetAlbumBMPTask(MusicAdapter.ViewHolder holder) {
             this.holder = holder;
         }
 
         @Override
         protected Bitmap doInBackground(Integer... integers) {
-            album_bmp = getAlbumBMP(integers[0], integers[1], integers[2], appContext);
+            album_bmp = getAlbumBMP(musicList.get(integers[0]).albumID, integers[1], integers[2], appContext);
             return album_bmp;
+        }
+
+        @Override
+        protected void onPostExecute(Bitmap bitmap) {
+            holder.iv_albumbmp.setImageBitmap(bitmap);
         }
     }
 }

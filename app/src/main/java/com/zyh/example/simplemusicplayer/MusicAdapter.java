@@ -2,6 +2,7 @@ package com.zyh.example.simplemusicplayer;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
 import android.view.LayoutInflater;
@@ -23,6 +24,7 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.ViewHolder> 
         View musicView;
         ImageView iv_albumbmp;
         TextView tv_title, tv_album, tv_artist, tv_duration;
+        MusicListLoader.GetAlbumBMPTask task;
 
         public ViewHolder(View view) {
             super(view);
@@ -32,6 +34,17 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.ViewHolder> 
             tv_album = view.findViewById(R.id.tv_album);
             tv_artist = view.findViewById(R.id.tv_artist);
             tv_duration = view.findViewById(R.id.tv_duration);
+            task = new MusicListLoader.GetAlbumBMPTask(this);
+        }
+
+        public void startTask(int position) {
+            if (task.getStatus() == AsyncTask.Status.RUNNING) {
+                task.cancel(true);
+                task = new MusicListLoader.GetAlbumBMPTask(this);
+            }
+            if (task.getStatus() == AsyncTask.Status.FINISHED)
+                task = new MusicListLoader.GetAlbumBMPTask(this);
+            task.execute(position, 160, 160);
         }
     }
 
@@ -46,17 +59,8 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.ViewHolder> 
     @Override
     public void onBindViewHolder(@NonNull final ViewHolder holder, int position) {
         MusicListLoader.MusicInfo musicInfo = mMusicList.get(position);
-        MusicListLoader.GetAlbumBMPThread myThread = new MusicListLoader.GetAlbumBMPThread();
-        myThread.mAlbumID = musicInfo.albumID;
-        myThread.mReqW = 160;
-        myThread.mReqH = 160;
-        myThread.handler = new Handler() {
-            @Override
-            public void handleMessage(Message msg) {
-                holder.iv_albumbmp.setImageBitmap((Bitmap) msg.obj);
-            }
-        };
-        MusicListLoader.executeThreadTask(myThread);
+        holder.iv_albumbmp.setImageBitmap(null);
+        holder.startTask(position);
         holder.tv_title.setText(musicInfo.title);
         holder.tv_album.setText(musicInfo.album);
         holder.tv_artist.setText(musicInfo.artist);
