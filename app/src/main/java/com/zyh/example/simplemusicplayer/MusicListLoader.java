@@ -71,15 +71,15 @@ public class MusicListLoader {
         loaded = true;
     }
 
-    public List<MusicInfo> getMusicList() {
+    public static List<MusicInfo> getMusicList() {
         return musicList;
     }
 
-    public static Bitmap getAlbumBMP(int albumid, int reqw, int reqh, Context context) {
+    public static Bitmap getAlbumBMP(int albumid, int reqw, int reqh) {
         String mUriAlbums = "content://media/external/audio/albums";
         Uri mAlbumUri = Uri.parse(mUriAlbums + "/" + albumid);
         //appContext.grantUriPermission(appContext.getPackageName(), mAlbumUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        Cursor cursor = context.getContentResolver().query(mAlbumUri, new String[]{"album_art"}, null, null, null);
+        Cursor cursor = appContext.getContentResolver().query(mAlbumUri, new String[]{"album_art"}, null, null, null);
         String album_bmp = null;
         if (cursor.getCount() > 0 && cursor.getColumnCount() > 0) {
             cursor.moveToNext();
@@ -114,7 +114,7 @@ public class MusicListLoader {
 
         @Override
         protected Bitmap doInBackground(Integer... integers) {
-            album_bmp = getAlbumBMP(musicList.get(integers[0]).albumID, integers[1], integers[2], appContext);
+            album_bmp = getAlbumBMP(musicList.get(integers[0]).albumID, integers[1], integers[2]);
             return album_bmp;
         }
 

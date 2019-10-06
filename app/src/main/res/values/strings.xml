@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Simple Music Player</string>
+
+    <string name="title_activity_play">PlayActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
 </resources>

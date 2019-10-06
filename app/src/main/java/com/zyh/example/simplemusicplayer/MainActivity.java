@@ -13,6 +13,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -22,19 +24,25 @@ import android.widget.TextView;
 
 import java.util.List;
 
+import static com.zyh.example.simplemusicplayer.MusicAdapter.REQUEST_PLAY_ACTIVITY;
+
 public class MainActivity extends AppCompatActivity {
     private static MusicListLoader musicListLoader;
     private static List<MusicListLoader.MusicInfo> musicInfos;
     private static RecyclerView musicRV;
+    private static Menu menu;
+    private static MenuItem playingItem;
 
     private void loadMusicRV() {
         musicListLoader = MusicListLoader.instance(getApplicationContext().getContentResolver(), getApplicationContext());
-        musicInfos = musicListLoader.getMusicList();
+        musicInfos = MusicListLoader.getMusicList();
         if (musicRV == null) {
             musicRV = findViewById(R.id.rv_musiclist);
             if (musicRV != null) {
                 musicRV.setLayoutManager(new LinearLayoutManager(this));
-                musicRV.setAdapter(new MusicAdapter(musicInfos));
+                MusicAdapter musicAdapter = new MusicAdapter(musicInfos);
+                musicAdapter.mActivity = this;
+                musicRV.setAdapter(musicAdapter);
             }
         }
     }
@@ -53,6 +61,8 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
             loadMusicRV();
+        if (MusicUtil.instance().getMusicInfo() != null && playingItem != null)
+            playingItem.setVisible(true);
     }
 
     @Override
@@ -70,9 +80,33 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == TestPermission.REQUEST_READ_EXTERNAL_SETTING)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && requestCode == TestPermission.REQUEST_READ_EXTERNAL_SETTING)
             TestPermission.getPermission(Manifest.permission.READ_EXTERNAL_STORAGE, this, TestPermission.GOTO_SETTING);
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
             loadMusicRV();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        MainActivity.menu = menu;
+        playingItem = menu.findItem(R.id.menu_main_playing);
+        if (MusicUtil.instance().getMusicInfo() != null && playingItem != null)
+            playingItem.setVisible(true);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_main_playing:
+                startActivityForResult(new Intent(this, PlayActivity.class).putExtra("mi", -1), REQUEST_PLAY_ACTIVITY);
+                break;
+            case R.id.menu_main_about:
+                break;
+            default:
+                break;
+        }
+        return true;
     }
 }
